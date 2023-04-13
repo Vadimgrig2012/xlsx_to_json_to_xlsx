@@ -52,11 +52,11 @@ def upload():
     # Преобразуем дату в json
     json_dict = json.loads(data)
 
-    # Создаем DataFrame из JSON
-    df = pd.DataFrame(json_dict)
+    # принимаем список заголовок из списка headers
+    headers = json_dict['headers']
 
-    # создаем пустой столбец для price
-    df['price'] = ''
+    # Создаем DataFrame из JSON из списка data
+    df = pd.DataFrame(json_dict['data'])
 
     # сортируем данные в обратном порядке (от новых к старым)
     df = df.sort_index(ascending=False)
@@ -67,8 +67,8 @@ def upload():
     # Создаем файл excel
     writer = pd.ExcelWriter(buffer, engine='openpyxl')
 
-    # Записываем данные на лист в excel
-    df.to_excel(writer, sheet_name='Лист1', index=False, header=['Model', 'name', 'article number', 'specifications', 'quantity', 'price'], na_rep='')
+    # Записываем данные на лист в excel и указываем заголовки headers
+    df.to_excel(writer, sheet_name='Лист1', index=False, header=headers, na_rep='')
 
     # Закрываем объект записи
     writer.close()
