@@ -5,13 +5,25 @@ import pandas as pd
 from io import BytesIO
 from werkzeug.serving import run_simple
 import openpyxl
-
+import config
 
 app = Flask(__name__)
 
+# Функция для проверки SECRET_KEY
+def check_secret_key(request):
+    secret_key = request.headers.get('X-SECRET-KEY')
+    if secret_key != config.SECRET_KEY:
+        return json.dumps('Unauthorized access, 401')
+    return None
 
 @app.route('/upload', methods=['POST'])
 def upload_file():
+
+    # Запуск проверки SECRET-KEY
+    error = check_secret_key(request)
+    if error:
+        return error
+    
     # Получаем данные из POST запроса
     file_data = request.form['file']
 
@@ -31,7 +43,7 @@ def upload_file():
                 record[key] = value.strip()
 
                 # ЭТОТ ФУНКЦИОНАЛ ПОКА НЕ НУЖЕН
-                # находим все символы кроме рус.яз и знаков препинания и объединяем (нахождения артикула)
+                # находим все символы кроме рус.яз и знаков препинания и объединяем (нахождение артикулов)
                 # regex = r'[^а-яА-ЯёЁ\s\.,!?;:]+'
                 # parts = re.findall(regex, record[key])
                 # record[key] = ', '.join(parts)
@@ -46,6 +58,12 @@ def upload_file():
 
 @app.route('/dowload', methods=['POST'])
 def upload():
+
+    # Запуск проверки SECRET-KEY
+    error = check_secret_key(request)
+    if error:
+        return error
+    
     # Получаем данные из POST запроса
     data = request.data
 
@@ -61,10 +79,10 @@ def upload():
     # сортируем данные в обратном порядке (от новых к старым)
     df = df.sort_index(ascending=False)
 
-    # Создаем буфер
+    # Создаем буфер в памяти
     buffer = BytesIO()
     
-    # Создаем файл excel
+    # Создаем файл excel в буфере
     writer = pd.ExcelWriter(buffer, engine='openpyxl')
 
     # Записываем данные на лист в excel и указываем заголовки headers
@@ -73,12 +91,18 @@ def upload():
     # Закрываем объект записи
     writer.close()
 
-    # Ставим указатель в начало буфера
+    # Передаем в response все из буфера
+    response = Response(buffer.getvalue(), mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                    headers={'Content-Disposition': 'attachment;filename=modified_sample.xlsx'})
+    
+    # устанавливаем указатель в начало буфера
     buffer.seek(0)
 
-    # Ответ
-    return Response(buffer, mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-                    headers={'Content-Disposition': 'attachment;filename=modified_sample.xlsx'})
+    # Очищаем буфер в памяти
+    buffer.truncate(0)
+
+    # Возврат
+    return response
 
 
 if __name__ == '__main__':
