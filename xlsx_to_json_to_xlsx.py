@@ -91,7 +91,7 @@ def upload():
     # Закрываем объект записи
     writer.close()
 
-    # Передаем в response все из буфера
+    # Передаем в response все из буфера и определяем mimetype и заголовки
     response = Response(buffer.getvalue(), mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
                     headers={'Content-Disposition': 'attachment;filename=modified_sample.xlsx'})
     
