@@ -3,7 +3,6 @@ import base64
 import json
 import pandas as pd
 from io import BytesIO
-from werkzeug.serving import run_simple
 import openpyxl
 import config
 
@@ -106,4 +105,4 @@ def upload():
 
 
 if __name__ == '__main__':
-    run_simple('0.0.0.0', 5000, app, threaded=True)
+    app.run(host='0.0.0.0')
