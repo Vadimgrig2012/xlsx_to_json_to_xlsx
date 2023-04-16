@@ -15,6 +15,15 @@ def check_secret_key(request):
         return json.dumps('Unauthorized access, 401')
     return None
 
+
+
+# Страница приветствия
+@app.route('/')
+def hello():
+    return "Hi! This is an API for processing excel files."
+
+
+
 @app.route('/upload', methods=['POST'])
 def upload_file():
 
